@@ -15,7 +15,7 @@ A simple face restoration TensorRT deployment solution, supporting StyleGAN, RTX
 1. Clone this repository
 ```
 git clone https://github.com/bychen7/Face-Restoration-TensorRT
-cd FRTRT
+cd Face-Restoration-TensorRT
 ```
 2. Install the necessary dependencies
 ```
