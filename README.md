@@ -7,9 +7,12 @@ A simple face restoration TensorRT deployment solution, supporting StyleGAN, RTX
 ## Requirements
 - Ubuntu 20.04+
 - CUDA 11.0+
-- TensorRT 7.2+
+- TensorRT 8.0+
 - OpenCV 4.2.0+
 - CMake 3.1.0+
+
+## Tested environments
+- Ubuntu 20.04 with CUDA 11.7 & TensorRT-8.2.4.2/TensorRT-8.6.1.6 on a RTX3090.
 
 ## Bulid and Run
 1. Clone this repository
