@@ -38,7 +38,7 @@ cd build
 cmake ..
 make
 ```
-5. Download the `model` ([BaiduPan](https://pan.baidu.com/s/19klcec1LlkWn_JspH82VPg) pwd: yxt7) and put them into `../models`, then generate the TensorRT engine 
+5. Download the `model` ([BaiduPan](https://pan.baidu.com/s/19klcec1LlkWn_JspH82VPg) pwd: yxt7 or [Google Drive](https://drive.google.com/drive/folders/1a0kuJlkicbPILrfZRM1OghYhEX4glHzL)) and put them into `../models`, then generate the TensorRT engine 
 ```
 ./convert ../models/model.onnx -s ../models/model.engine
 ```
