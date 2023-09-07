@@ -56,3 +56,15 @@ public:
         return res;
     }
 };
+
+// Other functions (call_go, FaceRestoration, etc.) should be defined outside the FaceRestore class.
+
+// Example usage:
+// int main() {
+//     FaceRestore faceRestore;
+//     faceRestore.setup();
+//     cv::Mat inputImage = cv::imread("input_image.jpg");
+//     cv::Mat outputImage = faceRestore.inference(inputImage);
+//     cv::imwrite("output_image.jpg", outputImage);
+//     return 0;
+// }
