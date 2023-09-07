@@ -26,8 +26,6 @@ PYBIND11_MODULE(python_face_restore, m) {
         .def("setup", &FaceRestore::setup)
         .def("inference", &FaceRestore::inference);
 
-    m.def("call_go", &call_go);
-
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else
