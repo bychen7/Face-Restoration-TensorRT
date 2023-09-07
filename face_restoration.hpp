@@ -18,8 +18,8 @@ class FaceRestoration {
         ~FaceRestoration();
 
     private:
-        static const int INPUT_H = 256;
-        static const int INPUT_W = 256;
+        static const int INPUT_H = 512;
+        static const int INPUT_W = 512;
         static const int INPUT_SIZE = 3 * INPUT_H * INPUT_W;
         static const int OUTPUT_SIZE = 3 * INPUT_H * INPUT_W;
 
