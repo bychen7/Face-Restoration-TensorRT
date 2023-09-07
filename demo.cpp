@@ -2,50 +2,59 @@
 #include <string>
 #include <iostream>
 #include <opencv2/opencv.hpp>
-
-
 #include "face_restoration.hpp"
+#include <pybind11/pybind11.h>
 
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 #define DEVICE 0  // GPU id
 
+namespace py = pybind11;
 
-int main(int argc, char **argv) {
-    cudaSetDevice(DEVICE);
+// Forward declaration for the FaceRestore class
+class FaceRestore;
 
-    if (argc != 4 || std::string(argv[2]) != "-i") {
-        std::cerr << "arguments not right!" << std::endl;
-        std::cerr << "For Example:" << std::endl;
-        std::cerr << "./demo ../models/model.engine -i ../images/test.png" << std::endl;
-        return -1;
-    }
+PYBIND11_MODULE(python_face_restore, m) {
+    m.doc() = R"pbdoc(
+        Pybind11 face restoration
+    )pbdoc";
+    
+    // Define the FaceRestore class and its methods
+    py::class_<FaceRestore>(m, "FaceRestore")
+        .def(py::init<>())
+        .def("setup", &FaceRestore::setup)
+        .def("inference", &FaceRestore::inference);
 
-    const std::string engine_file_path = argv[1];
-    const std::string input_image_path = argv[3];
+    m.def("call_go", &call_go);
 
-    cv::Mat img = cv::imread(input_image_path);
-    FaceRestoration sample = FaceRestoration(engine_file_path);
-    cv::Mat res;
-
-    // warm up
-    for (int i = 0; i < 10; i++) {
-        sample.infer(img, res);
-    }
-
-    float times = 0.0;
-    int count = 0;
-    for (int i = 0; i < 100; i++) {
-        auto start = std::chrono::system_clock::now();
-        sample.infer(img, res);
-        auto end = std::chrono::system_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-        std::cout << "count: " << count << std::endl;
-        times += elapsed;
-        count++;
-    }
-    std::cout << "times: " << times / count / 1000 << " ms" << std::endl;
-
-    cv::imwrite("res.jpg", res);
-
-    return 0;
+#ifdef VERSION_INFO
+    m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
+#else
+    m.attr("__version__") = "dev";
+#endif
 }
+
+// Define the FaceRestore class
+class FaceRestore {
+public:
+    FaceRestoration sample;  // Declare a FaceRestoration object
+
+    FaceRestore() {
+        // Constructor: You can initialize things here if needed
+    }
+
+    void setup() {
+        // Set the CUDA device (assuming you have multiple GPUs)
+        cudaSetDevice(DEVICE);
+
+        // Initialize the FaceRestoration object with the model file path
+        sample = FaceRestoration("./models/model.engine");
+    }
+
+    cv::Mat inference(cv::Mat img) {
+        cv::Mat res;
+        sample.infer(img, res);
+        return res;
+    }
+};
