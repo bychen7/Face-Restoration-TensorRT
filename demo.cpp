@@ -61,11 +61,6 @@ public:
     )
     );
     return output;
-}
-    cv::Mat inference(cv::Mat img) {
-        cv::Mat res;
-        sample.infer(img, res);
-        return res;
     }
 };
 
