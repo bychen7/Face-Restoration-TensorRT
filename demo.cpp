@@ -12,6 +12,7 @@
 
 namespace py = pybind11;
 
+
 class FaceRestore {
 public:
     FaceRestoration sample;  // Declare a FaceRestoration object
@@ -28,6 +29,35 @@ public:
         sample = FaceRestoration("./models/model.engine");
     }
 
+    py::array_t<uint8_t> inference(py::array_t<uint8_t>& img)
+    {
+    auto rows = img.shape(0);
+    auto cols = img.shape(1);
+    auto channels = img.shape(2);
+    std::cout << "rows: " << rows << " cols: " << cols << " channels: " << channels << std::endl;
+    auto type = CV_8UC3;
+
+    cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
+
+    cv::imwrite("test.png", cvimg); // OK
+
+    cv::Mat res;
+    sample.infer(img, res);
+
+    cv::imwrite("test2.png", res); // OK
+
+    py::array_t<uint8_t> output(
+                                py::buffer_info(
+                                res.data,
+                                sizeof(uint8_t), //itemsize
+                                py::format_descriptor<uint8_t>::format(),
+                                3, // ndim
+                                std::vector<size_t> {rows, cols , 3}, // shape
+                                std::vector<size_t> { sizeof(uint8_t) * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
+    )
+    );
+    return output;
+}
     cv::Mat inference(cv::Mat img) {
         cv::Mat res;
         sample.infer(img, res);
@@ -35,7 +65,7 @@ public:
     }
 };
 
-PYBIND11_MODULE(python_face_restore, m) {
+PYBIND11_MODULE(FaceRestore, m) {
     m.doc() = R"pbdoc(
         Pybind11 face restoration
     )pbdoc";
