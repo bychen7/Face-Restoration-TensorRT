@@ -46,7 +46,7 @@ public:
     cv::imwrite("test.png", cvimg); // OK
 
     cv::Mat res;
-    sample.infer(img, res);
+    sample.infer(cvimg, res);
 
     cv::imwrite("test2.png", res); // OK
 
