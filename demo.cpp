@@ -52,3 +52,13 @@ PYBIND11_MODULE(python_face_restore, m) {
     m.attr("__version__") = "dev";
 #endif
 }
+
+// Example usage:
+// int main() {
+//     FaceRestore faceRestore;
+//     faceRestore.setup();
+//     cv::Mat inputImage = cv::imread("input_image.jpg");
+//     cv::Mat outputImage = faceRestore.inference(inputImage);
+//     cv::imwrite("output_image.jpg", outputImage);
+//     return 0;
+// }
