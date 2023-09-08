@@ -4,6 +4,10 @@
 #include <opencv2/opencv.hpp>
 #include "face_restoration.hpp"
 #include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+#include <pybind11/functional.h>
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
