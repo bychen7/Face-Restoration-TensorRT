@@ -13,4 +13,7 @@ PYBIND11_MODULE(FaceRestoration, m) {
         .def(py::init<const std::string>())
         .def("infer", &FaceRestoration::infer);
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> fc8280d2ea8b9f680ed2be958110bc919cfdd8df
