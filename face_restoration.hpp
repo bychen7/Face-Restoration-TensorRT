@@ -1,10 +1,15 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include "NvInfer.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+#include <pybind11/functional.h>
 
 
 using namespace nvinfer1;
-
+namespace py = pybind11;
 
 class FaceRestoration {
     public:
@@ -14,12 +19,12 @@ class FaceRestoration {
         void imagePostProcess(float* output, cv::Mat& img);
         void blobFromImage(cv::Mat& img, float* blob);
         void doInference(IExecutionContext& context, float* input, float* output);
-        void infer(cv::Mat& img, cv::Mat& res);
+	py::array_t<uint8_t> infer(py::array_t<uint8_t>& img);
         ~FaceRestoration();
 
     private:
-        static const int INPUT_H = 512;
-        static const int INPUT_W = 512;
+        static const int INPUT_H = 256;
+        static const int INPUT_W = 256;
         static const int INPUT_SIZE = 3 * INPUT_H * INPUT_W;
         static const int OUTPUT_SIZE = 3 * INPUT_H * INPUT_W;
 

@@ -2,13 +2,17 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "NvInfer.h"
-
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+#include <pybind11/functional.h>
 
 #include "face_restoration.hpp"
 
 
 using namespace nvinfer1;
-
+namespace py = pybind11;
 
 #define CHECK(status) \
     do\
@@ -32,7 +36,6 @@ class Logger : public ILogger {
 
 
 FaceRestoration::FaceRestoration() {}
-
 
 FaceRestoration::FaceRestoration(const std::string engine_file_path) {
     char *trtModelStream = nullptr;
@@ -69,6 +72,7 @@ FaceRestoration::FaceRestoration(const std::string engine_file_path) {
 
 
 FaceRestoration::~FaceRestoration() {
+    std::cout << "Calling des" << std::endl;
     delete context;
     delete engine;
     delete runtime;
@@ -108,8 +112,13 @@ void FaceRestoration::blobFromImage(cv::Mat& img, float* input) {
     for (int c = 0; c < channels; c++) {
         for (int h = 0; h < INPUT_H; h++) {
             for (int w = 0; w < INPUT_W; w++) {
-                input[c * INPUT_W * INPUT_H + h * INPUT_W + w] =
-                    ((float)img.at<cv::Vec3b>(h, w)[c] / 255.0 - 0.5) / 0.5;
+                   float val = ((float)img.at<cv::Vec3b>(h, w)[c] / 255.0 - 0.5) / 0.5;
+                   try {
+		     input[c * INPUT_W * INPUT_H + h * INPUT_W + w] = val;
+		   }
+		   catch(int myNum) {
+		     std::cout << "Exception" << std::endl;   
+		   }
             }
         }
     }
@@ -120,7 +129,6 @@ void FaceRestoration::doInference(IExecutionContext& context, float* input, floa
     void* buffers[2];
     CHECK(cudaMalloc(&buffers[inputIndex], INPUT_SIZE * sizeof(float)));
     CHECK(cudaMalloc(&buffers[outputIndex], OUTPUT_SIZE * sizeof(float)));
-
     cudaStream_t stream;
     CHECK(cudaStreamCreate(&stream));
 
@@ -134,11 +142,31 @@ void FaceRestoration::doInference(IExecutionContext& context, float* input, floa
     CHECK(cudaFree(buffers[outputIndex]));
 }
 
+py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& img)
+    {
+    auto rows = img.shape(0);
+    auto cols = img.shape(1);
+    auto channels = img.shape(2);
+    auto type = CV_8UC3;
 
-void FaceRestoration::infer(cv::Mat& img, cv::Mat& res) {
+    cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
+
     cv::Mat img_resized;
-    imagePreProcess(img, img_resized);
+    imagePreProcess(cvimg, img_resized);
     blobFromImage(img_resized, input);
     doInference(*context, input, output);
+    cv::Mat res;
     imagePostProcess(output, res);
-}
+
+    py::array_t<uint8_t> output(
+                                py::buffer_info(
+                                res.data,
+                                sizeof(uint8_t), //itemsize
+                                py::format_descriptor<uint8_t>::format(),
+                                3, // ndim
+                                std::vector<size_t> {rows, cols , 3}, // shape
+                                std::vector<size_t> { sizeof(uint8_t) * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
+    )
+    );
+    return output;
+    };
