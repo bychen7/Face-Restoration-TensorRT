@@ -175,7 +175,7 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     blobFromImages(cvimgs, input);
     doInference(*context, input, output);
     std::vector<cv::Mat> res;
-    imagePostProcess(output, res);
+    imagesPostProcess(output, res);
 
     py::array_t<uint8_t> output(
                                 py::buffer_info(
