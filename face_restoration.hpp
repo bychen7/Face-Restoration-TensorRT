@@ -16,7 +16,7 @@ class FaceRestoration {
         FaceRestoration();
         FaceRestoration(const std::string engine_file_path);
         void imagePreProcess(cv::Mat& img, cv::Mat& img_resized);
-        void imagePostProcess(float* output, cv::Mat& img);
+        void imagesPostProcess(float* output, std::vector<cv::Mat>& img);
         void blobFromImages(std::vector<cv::Mat>& img, float* blob);
         void doInference(IExecutionContext& context, float* input, float* output);
 	py::array_t<uint8_t> infer(py::array_t<uint8_t>& img);
