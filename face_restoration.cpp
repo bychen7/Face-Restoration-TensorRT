@@ -107,20 +107,23 @@ void FaceRestoration::imagePostProcess(float* output, cv::Mat& img) {
 }
 
 
-void FaceRestoration::blobFromImage(cv::Mat& img, float* input) {
+void FaceRestoration::blobFromImages(std::vector<cv::Mat>& imgs, float* input) {
     int channels = 3;
-    for (int c = 0; c < channels; c++) {
-        for (int h = 0; h < INPUT_H; h++) {
-            for (int w = 0; w < INPUT_W; w++) {
-                   float val = ((float)img.at<cv::Vec3b>(h, w)[c] / 255.0 - 0.5) / 0.5;
-                   try {
-		     input[c * INPUT_W * INPUT_H + h * INPUT_W + w] = val;
-		   }
-		   catch(int myNum) {
-		     std::cout << "Exception" << std::endl;   
-		   }
-            }
-        }
+    for (int b = 0; b < BATCH_SIZE; b++) {
+	    cv::Mat img = imgs[b];
+	    for (int c = 0; c < channels; c++) {
+	        for (int h = 0; h < INPUT_H; h++) {
+	            for (int w = 0; w < INPUT_W; w++) {
+	                   float val = ((float)img.at<cv::Vec3b>(h, w)[c] / 255.0 - 0.5) / 0.5;
+	                   try {
+			     input[b * c * INPUT_W * INPUT_H + h * INPUT_W + w] = val;
+			   }
+			   catch(int myNum) {
+			     std::cout << "Exception" << std::endl;   
+			   }
+	            }
+	        }
+	    }
     }
 }
 
@@ -142,18 +145,25 @@ void FaceRestoration::doInference(IExecutionContext& context, float* input, floa
     CHECK(cudaFree(buffers[outputIndex]));
 }
 
-py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& img)
+py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     {
-    auto rows = img.shape(0);
-    auto cols = img.shape(1);
-    auto channels = img.shape(2);
+    auto batch = imgs.shape(0);
+    auto rows = imgs.shape(1);
+    auto cols = imgs.shape(2);
+    auto channels = imgs.shape(3);
     auto type = CV_8UC3;
 
-    cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
+	    
+    array<cv::Mat> cvimgs = []
+    for index in img.shape(0) {
+	py::array_t<uint8_t> img = imgs[index]
+	cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
+	cv::Mat img_resized;
+    	imagePreProcess(cvimg, img_resized);
+	cvimgs.append(img_resized);
+    }
 
-    cv::Mat img_resized;
-    imagePreProcess(cvimg, img_resized);
-    blobFromImage(img_resized, input);
+    blobFromImages(cvimgs, input);
     doInference(*context, input, output);
     cv::Mat res;
     imagePostProcess(output, res);
