@@ -177,6 +177,18 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     std::vector<cv::Mat> res;
     imagesPostProcess(output, res);
 
+    // Loop through each image in the vector and save it
+    for (int i = 0; i < res.size(); ++i) {
+        // Create a filename for the image (you can customize the filename as needed)
+        std::string filename = "image_" + std::to_string(i) + ".jpg";
+
+        // Save the image
+        cv::imwrite(filename, res[i]);
+
+        // Optionally, you can print the filename to confirm the saving process
+        std::cout << "Saved: " << filename << std::endl;
+    }
+
     // Concatenate the images in the batch
     cv::Mat concatenated;
     cv::vconcat(res, concatenated);
@@ -185,7 +197,7 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     cv::Mat reshaped(concatenated.rows, batch_size * cols, concatenated.type());
     reshaped.convertTo(reshaped, CV_8U);
 
-    py::array_t<uint8_t> py_output(
+    /*py::array_t<uint8_t> py_output(
         py::buffer_info(
             reshaped.data,
             sizeof(uint8_t), // itemsize
@@ -194,6 +206,7 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
             std::vector<size_t>{batch_size, rows, cols, 3}, // shape
             std::vector<size_t>{sizeof(uint8_t) * batch_size * cols * 3, sizeof(uint8_t) * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
         )
-    );
+    );*/
+    py::array_t<uint8_t> py_output;
  return py_output;
 }
