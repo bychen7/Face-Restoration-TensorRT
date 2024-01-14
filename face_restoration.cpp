@@ -154,12 +154,15 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     auto type = CV_8UC3;
 
 	    
+    auto buf = imgs.request();
+    uint8_t *ptr = static_cast<uint8_t *>(buf.ptr);
+
     std::vector<cv::Mat> cvimgs;
-    for (size_t index = 0; index < batch_size; ++index) {
-        py::array_t<uint8_t> img = imgs[index];
-        cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
+    for (py::ssize_t index = 0; index < batch_size; ++index) {
+        // Create an OpenCV Mat using the array data
+        cv::Mat image(rows, cols, CV_8UC3, ptr + index * rows * cols * channels);
         cv::Mat img_resized;
-        imagePreProcess(cvimg, img_resized);
+        imagePreProcess(image, img_resized);
         cvimgs.push_back(img_resized);
     }
 
