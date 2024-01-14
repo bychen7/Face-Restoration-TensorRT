@@ -89,7 +89,7 @@ void FaceRestoration::imagePreProcess(cv::Mat& img, cv::Mat& img_resized) {
 }
 
 
-void FaceRestoration::imagePostProcess(float* output, std::vector<cv::Mat>& cvimgs) {
+void FaceRestoration::imagesPostProcess(float* output, std::vector<cv::Mat>& cvimgs) {
     const int step = INPUT_H * INPUT_W * CHANNELS;
     for (size_t index = 0; index < OUTPUT_SIZE; index += step) {
         // Create an OpenCV Mat using the array data
