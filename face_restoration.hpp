@@ -26,8 +26,9 @@ class FaceRestoration {
         static const int INPUT_H = 512;
         static const int INPUT_W = 512;
 	static const int BATCH_SIZE = 8;
-        static const int INPUT_SIZE = BATCH_SIZE * 3 * INPUT_H * INPUT_W;
-        static const int OUTPUT_SIZE = BATCH_SIZE * 3 * INPUT_H * INPUT_W;
+        static const int CHANNELS = 3;
+        static const int INPUT_SIZE = BATCH_SIZE * CHANNELS * INPUT_H * INPUT_W;
+        static const int OUTPUT_SIZE = BATCH_SIZE * CHANNELS * INPUT_H * INPUT_W;
 
         const char *INPUT_BLOB_NAME = "input";
         const char *OUTPUT_BLOB_NAME = "output";
