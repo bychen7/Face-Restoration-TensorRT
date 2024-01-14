@@ -116,10 +116,10 @@ void FaceRestoration::blobFromImages(std::vector<cv::Mat>& imgs, float* input) {
 	            for (int w = 0; w < INPUT_W; w++) {
 	                   float val = ((float)img.at<cv::Vec3b>(h, w)[c] / 255.0 - 0.5) / 0.5;
 	                   try {
-			     input[b * c * INPUT_W * INPUT_H + h * INPUT_W + w] = val;
+			     input[b * channels * INPUT_W * INPUT_H + c * INPUT_W * INPUT_H + h * INPUT_W + w] = val;
 			   }
 			   catch(int myNum) {
-			     std::cout << "Exception" << std::endl;   
+			     std::cout << "Exception: " << e.what() << std::endl;
 			   }
 	            }
 	        }
@@ -147,20 +147,20 @@ void FaceRestoration::doInference(IExecutionContext& context, float* input, floa
 
 py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     {
-    auto batch = imgs.shape(0);
+    auto batch_size = imgs.shape(0);
     auto rows = imgs.shape(1);
     auto cols = imgs.shape(2);
     auto channels = imgs.shape(3);
     auto type = CV_8UC3;
 
 	    
-    array<cv::Mat> cvimgs = []
-    for index in img.shape(0) {
-	py::array_t<uint8_t> img = imgs[index]
-	cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
-	cv::Mat img_resized;
-    	imagePreProcess(cvimg, img_resized);
-	cvimgs.append(img_resized);
+    std::vector<cv::Mat> cvimgs;
+    for (size_t index = 0; index < batch_size; ++index) {
+        py::array_t<uint8_t> img = imgs[index];
+        cv::Mat cvimg(rows, cols, type, (unsigned char*)img.data());
+        cv::Mat img_resized;
+        imagePreProcess(cvimg, img_resized);
+        cvimgs.push_back(img_resized);
     }
 
     blobFromImages(cvimgs, input);
@@ -174,8 +174,8 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
                                 sizeof(uint8_t), //itemsize
                                 py::format_descriptor<uint8_t>::format(),
                                 3, // ndim
-                                std::vector<size_t> {rows, cols , 3}, // shape
-                                std::vector<size_t> { sizeof(uint8_t) * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
+                                std::vector<size_t> {batch_size, rows, cols , 3}, // shape
+                                std::vector<size_t> { sizeof(uint8_t) * batch_size * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
     )
     );
     return output;
