@@ -183,7 +183,7 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
 
     // Reshape the concatenated image to match the desired output shape
     cv::Mat reshaped(concatenated.rows, batch_size * cols, concatenated.type());
-    concatenated.reshape(3, { reshaped.rows, batch_size, cols });
+    reshaped.convertTo(reshaped, CV_8U);
 
     py::array_t<uint8_t> py_output(
         py::buffer_info(
@@ -195,5 +195,6 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
             std::vector<size_t>{sizeof(uint8_t) * batch_size * cols * 3, sizeof(uint8_t) * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
         )
     );
-    return output;
     };
+ return py_output;
+}
