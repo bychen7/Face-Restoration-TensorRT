@@ -118,7 +118,7 @@ void FaceRestoration::blobFromImages(std::vector<cv::Mat>& imgs, float* input) {
 	                   try {
 			     input[b * channels * INPUT_W * INPUT_H + c * INPUT_W * INPUT_H + h * INPUT_W + w] = val;
 			   }
-			   catch(int myNum) {
+			   catch (const std::exception& e) {
 			     std::cout << "Exception: " << e.what() << std::endl;
 			   }
 	            }
