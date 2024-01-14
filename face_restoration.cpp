@@ -177,15 +177,23 @@ py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
     std::vector<cv::Mat> res;
     imagesPostProcess(output, res);
 
-    py::array_t<uint8_t> output(
-                                py::buffer_info(
-                                res.data,
-                                sizeof(uint8_t), //itemsize
-                                py::format_descriptor<uint8_t>::format(),
-                                3, // ndim
-                                std::vector<size_t> {batch_size, rows, cols , 3}, // shape
-                                std::vector<size_t> { sizeof(uint8_t) * batch_size * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
-    )
+    // Concatenate the images in the batch
+    cv::Mat concatenated;
+    cv::vconcat(res, concatenated);
+
+    // Reshape the concatenated image to match the desired output shape
+    cv::Mat reshaped(concatenated.rows, batch_size * cols, concatenated.type());
+    concatenated.reshape(3, { reshaped.rows, batch_size, cols });
+
+    py::array_t<uint8_t> py_output(
+        py::buffer_info(
+            reshaped.data,
+            sizeof(uint8_t), // itemsize
+            py::format_descriptor<uint8_t>::format(),
+            3, // ndim
+            std::vector<size_t>{batch_size, rows, cols, 3}, // shape
+            std::vector<size_t>{sizeof(uint8_t) * batch_size * cols * 3, sizeof(uint8_t) * cols * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)}
+        )
     );
     return output;
     };
