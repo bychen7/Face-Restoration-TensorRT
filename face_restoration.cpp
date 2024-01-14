@@ -89,21 +89,27 @@ void FaceRestoration::imagePreProcess(cv::Mat& img, cv::Mat& img_resized) {
 }
 
 
-void FaceRestoration::imagePostProcess(float* output, cv::Mat& img) {
-    img.create(cv::Size(INPUT_H, INPUT_W), CV_8UC3);
-    for (int i = 0; i < OUTPUT_SIZE; i ++) {
-        int w = i % INPUT_H;
-        int h = (i / INPUT_W) % INPUT_H;
-        int c = i / INPUT_H / INPUT_W;
+void FaceRestoration::imagePostProcess(float* output, std::vector<cv::Mat>& cvimgs) {
+    const int step = INPUT_H * INPUT_W * CHANNELS;
+    for (size_t index = 0; index < OUTPUT_SIZE; index += step) {
+        // Create an OpenCV Mat using the array data
+        cv::Mat img(cv::Size(INPUT_W, INPUT_H), CV_8UC3);
+        
+        for (int i = 0; i < step; i++) {
+            int w = i % INPUT_W;
+            int h = (i / INPUT_W) % INPUT_H;
+            int c = i / (INPUT_W * INPUT_H);
 
-        float pixel = output[i] * 0.5 + 0.5;
-        if (pixel < 0) pixel = 0;
-        if (pixel > 1) pixel = 1;
-        pixel *= 255;
+            float pixel = output[index + i] * 0.5 + 0.5;
+            pixel = std::min(1.0f, std::max(0.0f, pixel));
+            pixel *= 255;
 
-        img.at<cv::Vec3b>(h, w)[c] = pixel;
+            img.at<cv::Vec3b>(h, w)[c] = static_cast<uint8_t>(pixel);
+        }
+
+        cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+        cvimgs.push_back(img);
     }
-    cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
 }
 
 
