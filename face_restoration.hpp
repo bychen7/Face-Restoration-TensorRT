@@ -40,6 +40,9 @@ class FaceRestoration {
         ICudaEngine* engine = nullptr;
         IExecutionContext* context = nullptr;
 
-        float* input = new float[INPUT_SIZE];
-        float* output = new float[OUTPUT_SIZE];
+        void* buffers[2];
+        float* input; // = new float[INPUT_SIZE];
+        float* output; // = new float[OUTPUT_SIZE];
+
+        cudaStream_t stream;
 };

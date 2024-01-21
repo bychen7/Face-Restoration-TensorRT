@@ -68,6 +68,13 @@ FaceRestoration::FaceRestoration(const std::string engine_file_path) {
     assert(engine->getBindingDataType(inputIndex) == nvinfer1::DataType::kFLOAT);
     outputIndex = engine->getBindingIndex(OUTPUT_BLOB_NAME);
     assert(engine->getBindingDataType(outputIndex) == nvinfer1::DataType::kFLOAT);
+
+    
+    CHECK(cudaMalloc(&buffers[inputIndex], INPUT_SIZE * sizeof(float)));
+    CHECK(cudaMalloc(&buffers[outputIndex], OUTPUT_SIZE * sizeof(float)));
+    CHECK(cudaMallocHost((void **)&input, INPUT_SIZE * sizeof(float)));
+    CHECK(cudaMallocHost((void **)&output, OUTPUT_SIZE * sizeof(float)));
+    CHECK(cudaStreamCreate(&stream));
 }
 
 
@@ -77,8 +84,13 @@ FaceRestoration::~FaceRestoration() {
     delete engine;
     delete runtime;
 
-    delete input;
-    delete output;
+    // delete input;
+    // delete output;
+    CHECK(cudaFreeHost(input));
+    CHECK(cudaFreeHost(output));
+    CHECK(cudaFree(buffers[inputIndex]));
+    CHECK(cudaFree(buffers[outputIndex]));
+    cudaStreamDestroy(stream);
 }
 
 
@@ -135,20 +147,16 @@ void FaceRestoration::blobFromImages(std::vector<cv::Mat>& imgs, float* input) {
 
 
 void FaceRestoration::doInference(IExecutionContext& context, float* input, float* output) {
-    void* buffers[2];
-    CHECK(cudaMalloc(&buffers[inputIndex], INPUT_SIZE * sizeof(float)));
-    CHECK(cudaMalloc(&buffers[outputIndex], OUTPUT_SIZE * sizeof(float)));
-    cudaStream_t stream;
-    CHECK(cudaStreamCreate(&stream));
 
+    // buffers[0] = input;
+    // buffers[1] = output;
     CHECK(cudaMemcpyAsync(buffers[inputIndex], input, INPUT_SIZE * sizeof(float), cudaMemcpyHostToDevice, stream));
     context.enqueueV2(buffers, stream, nullptr);
     CHECK(cudaMemcpyAsync(output, buffers[outputIndex], OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
     cudaStreamSynchronize(stream);
 
-    cudaStreamDestroy(stream);
-    CHECK(cudaFree(buffers[inputIndex]));
-    CHECK(cudaFree(buffers[outputIndex]));
+    
+
 }
 
 py::array_t<uint8_t> FaceRestoration::infer(py::array_t<uint8_t>& imgs)
